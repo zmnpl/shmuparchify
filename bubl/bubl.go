@@ -8,6 +8,7 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/zmnpl/shmuparchify/core"
 )
 
 const (
@@ -25,6 +26,8 @@ type model struct {
 
 	tmp_running string
 	success     bool
+
+	report []core.Message
 
 	spinner  spinner.Model
 	choices  []string         // items on the to-do list
@@ -134,6 +137,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.step = STEP_DONE
 		if doneWithSettingsMsg(msg).err == nil {
 			m.success = true
+			m.report = msg.report
 		}
 
 	default:
@@ -191,6 +195,10 @@ func (m model) View() string {
 	}
 
 	if m.step == STEP_DONE {
+		for _, row := range m.report {
+			s += row.Text + "\n"
+		}
+
 		s += goodTextStyle.Render("DONE; Now go, shoot'em up.")
 		s += "\n\n"
 	}

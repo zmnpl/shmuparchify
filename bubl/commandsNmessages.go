@@ -18,13 +18,14 @@ func makeCheckDirCommand(path string) tea.Cmd {
 }
 
 type doneWithSettingsMsg struct {
-	err error
+	report []core.Message
+	err    error
 }
 
 func makeDoCoreSettingsCommand(path string) tea.Cmd {
 	return func() tea.Msg {
 		time.Sleep(3 * time.Second)
-		err := core.SetShmupArchCoreSettings(path)
-		return doneWithSettingsMsg{err: err}
+		report, err := core.SetShmupArchCoreSettings(path)
+		return doneWithSettingsMsg{report: report, err: err}
 	}
 }

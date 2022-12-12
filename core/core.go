@@ -21,38 +21,33 @@ const (
 )
 
 type Message struct {
-	status string
-	text   string
+	Suceess bool
+	Text    string
 }
 
-var (
-	Report []Message
-)
-
 // TODO - this one may be done better
-func SetShmupArchCoreSettings(retroarchCfgDirPath string) error {
+func SetShmupArchCoreSettings(retroarchCfgDirPath string) ([]Message, error) {
+	report := make([]Message, 0, len(GameSettings)+1)
+
 	err := UpdateCfg(filepath.Join(retroarchCfgDirPath, RETROARCH_CFG), GlobalSettings)
 	if err != nil {
-		return err
+		report = append(report, Message{Suceess: false, Text: fmt.Sprint("Could't set RetroArch core settings: %v", err)})
+		return report, err
 	}
+	report = append(report, Message{Suceess: true, Text: "Core settings set"})
 
-	gameErrors := ""
 	for gameName, cfgEntries := range GameSettings {
 		err = UpdateCfg(filepath.Join(retroarchCfgDirPath, FBNEO_CFG_DIR, gameName+".cfg"), cfgEntries)
 		if err != nil {
-			gameErrors += err.Error()
+			report = append(report, Message{Suceess: false, Text: fmt.Sprintf("%v - had a problem adding the settings: %v", gameName, err)})
 		}
-	}
-	if len(gameErrors) > 0 {
-		return fmt.Errorf(gameErrors)
+		report = append(report, Message{Suceess: true, Text: fmt.Sprintf("%v - done", gameName)})
 	}
 
-	return nil
+	return report, nil
 }
 
 func UpdateCfg(cfgPath string, entries []cfgEntry) error {
-	//fmt.Printf("\nOptimizing config: %s\n", cfgPath)
-
 	cfg, err := readCfg(cfgPath)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
@@ -65,7 +60,10 @@ func UpdateCfg(cfgPath string, entries []cfgEntry) error {
 
 	cfg = patchAndAppendEntries(cfg, entries)
 
-	writeCfg(cfgPath, cfg)
+	err = writeCfg(cfgPath, cfg)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
