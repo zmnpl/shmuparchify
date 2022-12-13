@@ -6,6 +6,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/textinput"
+	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/zmnpl/shmuparchify/core"
@@ -16,6 +17,8 @@ const (
 	STEP_CONFIRM         = 2
 	STEP_RUNNING         = 3
 	STEP_DONE            = 4
+
+	useHighPerformanceRenderer = false
 )
 
 type model struct {
@@ -27,7 +30,9 @@ type model struct {
 	tmp_running string
 	success     bool
 
-	report []core.Message
+	report     []core.Message
+	ready      bool
+	reportView viewport.Model
 
 	spinner  spinner.Model
 	choices  []string         // items on the to-do list
@@ -76,10 +81,47 @@ func (m model) Init() tea.Cmd {
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	//var cmds []tea.Cmd
-	var cmd tea.Cmd
+	var cmds []tea.Cmd
+	//var cmd tea.Cmd
 
 	switch msg := msg.(type) {
+
+	case tea.WindowSizeMsg:
+		//headerHeight := lipgloss.Height(m.headerView())
+		headerHeight := 15
+		footerHeight := 2
+		verticalMarginHeight := headerHeight + footerHeight
+
+		if !m.ready {
+			// Since this program is using the full size of the viewport we
+			// need to wait until we've received the window dimensions before
+			// we can initialize the viewport. The initial dimensions come in
+			// quickly, though asynchronously, which is why we wait for them
+			// here.
+			//m.reportView = viewport.New(msg.Width, msg.Height-verticalMarginHeight)
+			m.reportView = viewport.New(msg.Width, 15)
+			m.reportView.YPosition = headerHeight
+			m.reportView.HighPerformanceRendering = useHighPerformanceRenderer
+			m.reportView.SetContent("")
+			m.ready = true
+
+			// This is only necessary for high performance rendering, which in
+			// most cases you won't need.
+			//
+			// Render the viewport one line below the header.
+			m.reportView.YPosition = headerHeight + 1
+		} else {
+			m.reportView.Width = msg.Width
+			m.reportView.Height = msg.Height - verticalMarginHeight
+		}
+
+		if useHighPerformanceRenderer {
+			// Render (or re-render) the whole viewport. Necessary both to
+			// initialize the viewport and when the window is resized.
+			//
+			// This is needed for high-performance rendering only.
+			cmds = append(cmds, viewport.Sync(m.reportView))
+		}
 
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -90,7 +132,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "enter":
 			if m.step == STEP_RETROARCH_INPUT {
 				m.step = STEP_CONFIRM
-				cmd = makeCheckDirCommand(m.retroarchCfgDirInput.Value())
+				cmd := makeCheckDirCommand(m.retroarchCfgDirInput.Value())
 				return m, cmd
 			}
 			if m.step == STEP_CONFIRM {
@@ -127,7 +169,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// update input
 		if m.step == STEP_RETROARCH_INPUT {
+			var cmd tea.Cmd
 			m.retroarchCfgDirInput, cmd = m.retroarchCfgDirInput.Update(msg)
+			cmds = append(cmds, cmd)
+		}
+
+		// update viewport
+		if m.step == STEP_DONE {
+			var cmd tea.Cmd
+			m.reportView, cmd = m.reportView.Update(msg)
+			cmds = append(cmds, cmd)
 		}
 
 	case cfgDirContainsCfgMsg:
@@ -138,6 +189,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if doneWithSettingsMsg(msg).err == nil {
 			m.success = true
 			m.report = msg.report
+
+			rep := ""
+			for _, row := range m.report {
+				status := badTextStyle.Render("ERROR")
+				if row.Suceess {
+					status = goodTextStyle.Render("SUCCESS")
+				}
+				rep += fmt.Sprintf("%s - %s\n", status, row.Text)
+			}
+			m.reportView.SetContent(rep)
 		}
 
 	default:
@@ -147,7 +208,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	}
 
-	return m, cmd
+	return m, tea.Batch(cmds...)
 }
 
 func (m model) View() string {
@@ -195,11 +256,10 @@ func (m model) View() string {
 	}
 
 	if m.step == STEP_DONE {
-		for _, row := range m.report {
-			s += row.Text + "\n"
-		}
+		s += fmt.Sprintf("---Report\n%s\n---\n(Scrolling: %s)", m.reportView.View(), fmt.Sprintf("%3.f%%", m.reportView.ScrollPercent()*100))
+		s += "\n\n"
 
-		s += goodTextStyle.Render("DONE; Now go, shoot'em up.")
+		s += goodTextStyle.Render("All good! Now go, shoot'em up.")
 		s += "\n\n"
 	}
 
