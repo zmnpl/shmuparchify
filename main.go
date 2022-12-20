@@ -1,6 +1,8 @@
 package main
 
-import "github.com/zmnpl/shmuparchify/bubl"
+import (
+	"github.com/zmnpl/shmuparchify/bubl"
+)
 
 var (
 	retroarchCfgDir = "/home/simon/.config/retroarch"
@@ -18,9 +20,7 @@ func main() {
 	// for g, settings := range core.GameSettings {
 	// 	core.Update_cfg(filepath.Join(retroarchCfgDir, core.FBNEO_CFG_DIR, g)+".cfg", settings)
 	// }
-
 	bubl.Run()
-
 	//update_cfg("/home/simon/.config/retroarch/config/FinalBurn Neo/ddonpach.cfg", gameSettings["ddonpach"])
 
 }

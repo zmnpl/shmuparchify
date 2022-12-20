@@ -1,13 +1,9 @@
 package core
 
 import (
-	"bufio"
-	"errors"
-	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
-	"strings"
 
 	"github.com/mitchellh/go-homedir"
 )
@@ -21,103 +17,24 @@ const (
 )
 
 type Message struct {
-	Suceess bool
+	Success bool
 	Text    string
 }
 
 // TODO - this one may be done better
 func SetShmupArchCoreSettings(retroarchCfgDirPath string) ([]Message, error) {
+	t := timeStamp()
 	report := make([]Message, 0, len(GameSettings)+1)
 
-	err := UpdateCfg(filepath.Join(retroarchCfgDirPath, RETROARCH_CFG), GlobalSettings)
-	if err != nil {
-		report = append(report, Message{Suceess: false, Text: fmt.Sprint("Could't set RetroArch core settings: %v", err)})
-		return report, err
-	}
-	report = append(report, Message{Suceess: true, Text: "Core settings set"})
+	// retroarch.cfg core settings
+	report = append(report, setSettings(GlobalSettings, t, retroarchCfgDirPath, "", RETROARCH_CFG))
 
+	// FBNeo Game Settings
 	for gameName, cfgEntries := range GameSettings {
-		err = UpdateCfg(filepath.Join(retroarchCfgDirPath, FBNEO_CFG_DIR, gameName+".cfg"), cfgEntries)
-		if err != nil {
-			report = append(report, Message{Suceess: false, Text: fmt.Sprintf("%v - had a problem adding the settings: %v", gameName, err)})
-		}
-		report = append(report, Message{Suceess: true, Text: fmt.Sprintf("%v - done", gameName)})
+		report = append(report, setSettings(cfgEntries, t, retroarchCfgDirPath, FBNEO_CFG_DIR, gameName+".cfg"))
 	}
 
 	return report, nil
-}
-
-func UpdateCfg(cfgPath string, entries []cfgEntry) error {
-	cfg, err := readCfg(cfgPath)
-	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			//fmt.Println("Config does not exist; Will create a new one...")
-			os.MkdirAll(filepath.Dir(cfgPath), 0744)
-		} else {
-			return fmt.Errorf("SKIPING: Could not read existing config: %v", err)
-		}
-	}
-
-	cfg = patchAndAppendEntries(cfg, entries)
-
-	err = writeCfg(cfgPath, cfg)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func patchAndAppendEntries(cfgRows []string, entries []cfgEntry) []string {
-	for _, n := range entries {
-		replaced := false
-		for i, row := range cfgRows {
-			rowSplit := strings.Split(row, " = ")
-			if rowSplit[0] == n.option {
-				cfgRows[i] = n.String()
-				//fmt.Printf("Replacing %v with %v\n", n.option, n.value)
-				//oldVal := strings.Trim(rowSplit[1], "\"")
-				//fmt.Printf("%-40s %v -> %v\n", fmt.Sprintf("Replacing %v", n.option), oldVal, n.value)
-				replaced = true
-				break
-			}
-		}
-		if !replaced {
-			//fmt.Printf("Appending %v\n", n.String())
-			cfgRows = append(cfgRows, n.String())
-		}
-	}
-
-	return cfgRows
-}
-
-// readCfg returns the lines of a cfg file as slice of string
-func readCfg(cfgPath string) ([]string, error) {
-	cfg, err := os.Open(cfgPath)
-	if err != nil {
-		return nil, err
-	}
-	defer cfg.Close()
-
-	scanner := bufio.NewScanner(cfg)
-	scanner.Split(bufio.ScanLines)
-	var rows []string
-	for scanner.Scan() {
-		rows = append(rows, scanner.Text())
-	}
-
-	return rows, nil
-}
-
-func writeCfg(cfgPath string, rows []string) error {
-	f, err := os.Create(cfgPath)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-	cfgContent := strings.Join(rows, "\n")
-	f.Write([]byte(cfgContent))
-	return nil
 }
 
 // CheckRetroarchCfgExists checks the given folder an existing retroarch.cfg

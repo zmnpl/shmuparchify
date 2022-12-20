@@ -38,7 +38,7 @@ func init() {
 	goodTextStyle = lipgloss.NewStyle().Foreground(GREEN)
 	badTextStyle = lipgloss.NewStyle().Foreground(RED)
 
-	indicatorTextStyle = lipgloss.NewStyle().Foreground(BLUE).PaddingRight(1)
+	indicatorTextStyle = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "#EE6FF8", Dark: "#EE6FF8"}).PaddingRight(1).Bold(true)
 
 	dimmedTextStyle = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "#A49FA5", Dark: "#777777"})
 }

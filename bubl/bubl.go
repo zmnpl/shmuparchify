@@ -87,39 +87,18 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 
 	case tea.WindowSizeMsg:
-		//headerHeight := lipgloss.Height(m.headerView())
-		headerHeight := 15
-		footerHeight := 2
-		verticalMarginHeight := headerHeight + footerHeight
 
 		if !m.ready {
-			// Since this program is using the full size of the viewport we
-			// need to wait until we've received the window dimensions before
-			// we can initialize the viewport. The initial dimensions come in
-			// quickly, though asynchronously, which is why we wait for them
-			// here.
-			//m.reportView = viewport.New(msg.Width, msg.Height-verticalMarginHeight)
 			m.reportView = viewport.New(msg.Width, 15)
-			m.reportView.YPosition = headerHeight
 			m.reportView.HighPerformanceRendering = useHighPerformanceRenderer
 			m.reportView.SetContent("")
 			m.ready = true
-
-			// This is only necessary for high performance rendering, which in
-			// most cases you won't need.
-			//
-			// Render the viewport one line below the header.
-			m.reportView.YPosition = headerHeight + 1
 		} else {
 			m.reportView.Width = msg.Width
-			m.reportView.Height = msg.Height - verticalMarginHeight
+			m.reportView.Height = msg.Height
 		}
 
 		if useHighPerformanceRenderer {
-			// Render (or re-render) the whole viewport. Necessary both to
-			// initialize the viewport and when the window is resized.
-			//
-			// This is needed for high-performance rendering only.
 			cmds = append(cmds, viewport.Sync(m.reportView))
 		}
 
@@ -156,8 +135,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.cursor++
 			}
 
-		// The the spacebar (a literal space) toggle
-		// the selected state for the item that the cursor is pointing at.
 		case " ":
 			_, ok := m.selected[m.cursor]
 			if ok {
@@ -193,7 +170,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			rep := ""
 			for _, row := range m.report {
 				status := badTextStyle.Render("ERROR")
-				if row.Suceess {
+				if row.Success {
 					status = goodTextStyle.Render("SUCCESS")
 				}
 				rep += fmt.Sprintf("%s - %s\n", status, row.Text)
@@ -245,8 +222,9 @@ func (m model) View() string {
 	if m.step == STEP_CONFIRM {
 		s += indicator
 		s += "What now?\n"
-		s += indicatorTextStyle.Render("Enter") + " - Let's go; Shmupify my RetroArch\n"
-		s += indicatorTextStyle.Render("ESC") + "   - Edit path"
+		s += indicatorTextStyle.Render("Enter") + " - Let's go"
+		s += " | "
+		s += indicatorTextStyle.Render("ESC") + " - Edit path"
 		s += "\n\n"
 	}
 
@@ -256,7 +234,9 @@ func (m model) View() string {
 	}
 
 	if m.step == STEP_DONE {
-		s += fmt.Sprintf("---Report\n%s\n---\n(Scrolling: %s)", m.reportView.View(), fmt.Sprintf("%3.f%%", m.reportView.ScrollPercent()*100))
+		s += indicatorTextStyle.Render("---Report") + "\n"
+		s += m.reportView.View() + "\n"
+		s += indicatorTextStyle.Render(fmt.Sprintf("--- (Scroll %3.f%%)", m.reportView.ScrollPercent()*100))
 		s += "\n\n"
 
 		s += goodTextStyle.Render("All good! Now go, shoot'em up.")
