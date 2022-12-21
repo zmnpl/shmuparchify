@@ -1,7 +1,5 @@
 # ShmupArchify - Make your RetroArch Shmup Ready
 
- 
-
 ## What is This?
 
 ***ShmupArch*** is a repackaged version of RetroArch created by Mark_MSX from [The Electric Underground](https://www.youtube.com/@TheElectricUnderground) incorporating a lot of settings for RetroArch, the FBNeo core and ROM specifics to make Shmupping as good and responsive as possible. Read the below article for a more detailed reasoning from Mark.
@@ -20,6 +18,9 @@ Now, ***ShmupArchify*** is here for those who don't want to have a full repacked
 2) Run it
 3) Follow the directions
 4) Shoot!
+
+![demo](demo/demo.gif)
+
 
 ## What does it do exactly?
 
