@@ -19,12 +19,23 @@ Now, ***ShmupArchify*** is here for those who don't want to have a full repacked
 3) Follow the directions
 4) Shoot!
 
-![demo](demo/demo.gif)
+![demo](demo/guidemo.png)
 
 
 ## What does it do exactly?
 
 TODO
+
+## TODOs
+
+- Make some more sanity checks for given dir
+- If no retroarch.cfg is in there, but a default cfg exists, copy the default to initialize
+- Build bezel downloader and make option functional
+- - Bezel downloader could as well be used for all available roms (ask for rom dir)
+- Make game specfic settings for all clones / parents as well (?)
+- Add cosmetic option routine
+- Write up help for help tab
+- Make this readme better
 
 ## Credits
 

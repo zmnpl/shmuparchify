@@ -1,8 +1,8 @@
 package main
 
-import "github.com/zmnpl/shmuparchify/bubl"
+import "github.com/zmnpl/shmuparchify/gui"
 
 func main() {
-	bubl.Run()
-	//gui.Run()
+	//bubl.Run()
+	gui.Run()
 }
