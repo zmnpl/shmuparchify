@@ -6,5 +6,5 @@ import (
 )
 
 func timeStamp() string {
-	return fmt.Sprint(time.Now().Format("2006-01-02_15:04:05"))
+	return fmt.Sprint(time.Now().Format("2006-01-02_15.04.05"))
 }
