@@ -77,7 +77,7 @@ func patchAndAppendEntries(cfgRows []string, entries []cfgEntry) []string {
 		replaced := false
 		for i, row := range cfgRows {
 			rowSplit := strings.Split(row, " = ")
-			if rowSplit[0] == n.option {
+			if strings.TrimSuffix(strings.TrimPrefix(rowSplit[0], "\""), "\"") == n.option {
 				cfgRows[i] = n.String()
 				replaced = true
 				break
