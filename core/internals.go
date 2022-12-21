@@ -10,26 +10,26 @@ import (
 	"strings"
 )
 
-func setSettings(cfgEntries []cfgEntry, timeStamp, retroarchCfgDirPath, subDir, fileName string) Message {
-	err := backupCfg(timeStamp, retroarchCfgDirPath, subDir, fileName)
+func (saifi SAIFI) setSettings(cfgEntries []cfgEntry, subDir, fileName string) Message {
+	err := saifi.backupCfg(subDir, fileName)
 	if err != nil && !os.IsNotExist(err) {
 		return Message{Success: false, Text: fmt.Sprintf("%s (%s); Couldn't backup existing cfg, therefore skipping: %v", fileName, subDir, err.Error())}
 	}
-	err = updateCfg(filepath.Join(retroarchCfgDirPath, subDir, fileName), cfgEntries)
+	err = updateCfg(filepath.Join(saifi.retroarchCfgDirPath, subDir, fileName), cfgEntries)
 	if err != nil {
 		return Message{Success: false, Text: fmt.Sprintf("%s (%s); Couldn't optimize config: %v", fileName, subDir, err)}
 	}
 	return Message{Success: true, Text: fmt.Sprintf("%v (%s)", fileName, subDir)}
 }
 
-func backupCfg(timeStamp, retroarchCfgDirPath, subDir, fileName string) error {
-	backupPath := filepath.Join(retroarchCfgDirPath, "_shmuparchify_backup", timeStamp, subDir)
+func (saifi SAIFI) backupCfg(subDir, fileName string) error {
+	backupPath := filepath.Join(saifi.retroarchCfgDirPath, "_shmuparchify_backup", saifi.timeStamp, subDir)
 	err := os.MkdirAll(backupPath, 0755)
 	if err != nil {
 		return err
 	}
 
-	cfgFilePath := filepath.Join(retroarchCfgDirPath, subDir, fileName)
+	cfgFilePath := filepath.Join(saifi.retroarchCfgDirPath, subDir, fileName)
 	backupFilePath := filepath.Join(backupPath, fileName)
 
 	// make copy

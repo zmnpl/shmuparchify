@@ -21,17 +21,34 @@ type Message struct {
 	Text    string
 }
 
+type SAIFI struct {
+	retroarchCfgDirPath string
+	timeStamp           string
+}
+
+func NewSAIFI(retroarchCfgDirPath string, options ...func(SAIFI) SAIFI) SAIFI {
+	sai := SAIFI{
+		retroarchCfgDirPath: retroarchCfgDirPath,
+		timeStamp:           timeStamp(),
+	}
+
+	for _, opt := range options {
+		sai = opt(sai)
+	}
+
+	return sai
+}
+
 // TODO - this one may be done better
-func SetShmupArchCoreSettings(retroarchCfgDirPath string) ([]Message, error) {
-	t := timeStamp()
+func (saifi SAIFI) SetShmupArchCoreSettings() ([]Message, error) {
 	report := make([]Message, 0, len(GameSettings)+1)
 
 	// retroarch.cfg core settings
-	report = append(report, setSettings(GlobalSettings, t, retroarchCfgDirPath, "", RETROARCH_CFG))
+	report = append(report, saifi.setSettings(GlobalSettings, "", RETROARCH_CFG))
 
 	// FBNeo Game Settings
 	for gameName, cfgEntries := range GameSettings {
-		report = append(report, setSettings(cfgEntries, t, retroarchCfgDirPath, FBNEO_CFG_DIR, gameName+".cfg"))
+		report = append(report, saifi.setSettings(cfgEntries, FBNEO_CFG_DIR, gameName+".cfg"))
 	}
 
 	return report, nil
@@ -39,8 +56,8 @@ func SetShmupArchCoreSettings(retroarchCfgDirPath string) ([]Message, error) {
 
 // CheckRetroarchCfgExists checks the given folder an existing retroarch.cfg
 // to determine if the given path is valid
-func CheckRetroarchCfgExists(retroArchCfgDirPath string) bool {
-	info, err := os.Stat(filepath.Join(retroArchCfgDirPath, RETROARCH_CFG))
+func (saifi SAIFI) CheckRetroarchCfgExists() bool {
+	info, err := os.Stat(filepath.Join(saifi.retroarchCfgDirPath, RETROARCH_CFG))
 	if os.IsNotExist(err) {
 		return false
 	}
