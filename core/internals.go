@@ -13,7 +13,7 @@ import (
 func setSettings(cfgEntries []cfgEntry, timeStamp, retroarchCfgDirPath, subDir, fileName string) Message {
 	err := backupCfg(timeStamp, retroarchCfgDirPath, subDir, fileName)
 	if err != nil && !os.IsNotExist(err) {
-		return Message{Success: false, Text: err.Error()}
+		return Message{Success: false, Text: fmt.Sprintf("%s (%s); Couldn't backup existing cfg, therefore skipping: %v", fileName, subDir, err.Error())}
 	}
 	err = updateCfg(filepath.Join(retroarchCfgDirPath, subDir, fileName), cfgEntries)
 	if err != nil {
@@ -58,7 +58,7 @@ func updateCfg(cfgPath string, entries []cfgEntry) error {
 		if errors.Is(err, os.ErrNotExist) {
 			os.MkdirAll(filepath.Dir(cfgPath), 0755)
 		} else {
-			return fmt.Errorf("SKIPING: Could not read existing config: %v", err)
+			return fmt.Errorf("could not read existing config: %v", err)
 		}
 	}
 
