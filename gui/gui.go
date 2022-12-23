@@ -6,6 +6,8 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/layout"
+	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"github.com/zmnpl/shmuparchify/core"
 )
@@ -18,7 +20,7 @@ func Run() {
 	a := app.New()
 	a.Settings().SetTheme(newCustomTheme())
 	w := a.NewWindow("ShmupArchify - Make your RetroArch Shmup Ready")
-	w.Resize(fyne.NewSize(800, 600))
+	w.Resize(fyne.NewSize(800, 500))
 
 	hello := widget.NewLabel("Enter your RetroArch config dir below:")
 
@@ -26,7 +28,7 @@ func Run() {
 	pathEntry := widget.NewEntry()
 	pathEntry.SetText(core.TryFindRetroarchCFGDir())
 	pathEntry.Validator = func(string) error {
-		sai := core.NewSAIFI(pathEntry.Text)
+		sai := core.NewRATransformer(pathEntry.Text)
 		if sai.CheckRetroarchCfgExists() {
 			return nil
 		}
@@ -34,56 +36,110 @@ func Run() {
 	}
 
 	// create report view
-	reportMD := "## Report\n\n"
+	reportMD := ""
 	reportRichText := widget.NewRichTextFromMarkdown(reportMD)
 	reportRichText.Wrapping = fyne.TextTruncate
 	reportScroll := container.NewVScroll(reportRichText)
-	reportScroll.SetMinSize(fyne.NewSize(550, 350))
+	reportScroll.SetMinSize(fyne.NewSize(200, 300))
 
 	// options
 	coreOptionsCheck := widget.NewCheck("ShmupArch Core Settings", func(value bool) {})
 	coreOptionsCheck.Checked = true
 	coreOptionsCheck.Disable()
-	bezelsCheck := widget.NewCheck("Download and Setup Arcade Bezels", func(value bool) {})
 	cosmeticsCheck := widget.NewCheck("RetroArch Cosmetics", func(value bool) {})
 
-	// button to run everything
-	okButton := widget.NewButton("Ok", func() {
-		sai := core.NewSAIFI(pathEntry.Text)
-		report, _ := sai.SetShmupArchCoreSettings()
+	// progress bar
+	dlProgress := widget.NewProgressBar()
+	dlProgress.Hidden = true
 
-		// patch together "markdown" for richtext view
-		for _, m := range report {
-			status := "FAILED"
-			if m.Success {
-				status = "SUCCESS"
-			}
-			reportMD += fmt.Sprintf("***%s*** | %s\n\n", status, m.Text)
+	//button to run everything
+	okButton := widget.NewButton("Ok", func() {
+		opts := make([]func(core.RetroArchChanger) core.RetroArchChanger, 0)
+
+		r := core.NewRATransformer(pathEntry.Text, opts...)
+		report, _ := r.SetShmupArchCoreSettings()
+		reportMD += messagesToMD(report)
+		reportRichText.ParseMarkdown(reportMD)
+
+		// download bezels
+		if false {
+			dlProgress.Hidden = false
+			bezelJobs := r.GetBezelDownloadJobs()
+			dlProgress.Min = 0
+			dlProgress.Max = float64(len(bezelJobs))
+
+			progress := 0.0
+			go func() {
+				for _, j := range bezelJobs {
+					j()
+					progress += 1
+					dlProgress.SetValue(progress)
+				}
+			}()
 		}
 
-		reportRichText.ParseMarkdown(reportMD)
+		reportScroll.ScrollToBottom()
 	})
 
-	// build layout
-	mainLayout := container.NewVBox(
-		hello,
-		pathEntry,
+	shmupArchOptionsLayout := container.NewVBox(
+		widget.NewLabel("Options"),
+		container.NewHBox(coreOptionsCheck, cosmeticsCheck),
 		widget.NewSeparator(),
-		coreOptionsCheck,
-		bezelsCheck,
-		cosmeticsCheck,
-		okButton,
-		widget.NewSeparator(),
-		//widget.NewLabel("Report"),
-		reportScroll)
-
-	tabs := container.NewAppTabs(
-		container.NewTabItem("Run", mainLayout),
-		container.NewTabItem("Help", widget.NewLabel("TODO - Help here")),
+		container.NewHBox(layout.NewSpacer(), okButton),
 	)
-	tabs.SetTabLocation(container.TabLocationTop)
 
-	w.SetContent(tabs)
+	helpLayout := container.NewVBox(
+		widget.NewLabel("foo"),
+		widget.NewLabel("foo"),
+		widget.NewLabel("foo"),
+		widget.NewLabel("foo"),
+	)
+
+	openFolderButton := widget.NewButtonWithIcon("", theme.FolderOpenIcon(), func() {})
+	testRACfgExists := widget.NewCheck("retroarch.cfg exists", nil)
+	testRACfgExists.Disable()
+	testCanRW := widget.NewCheck("Can read/write", nil)
+	testCanRW.Disable()
+
+	testRACfgExists.Checked = true
+	testCanRW.Checked = true
+
+	retroArchPathLayout := container.NewVBox(
+		widget.NewToolbar(
+			widget.NewToolbarAction(theme.FileIcon(), nil),
+			widget.NewToolbarAction(theme.CancelIcon(), func() {}),
+		),
+		hello,
+		container.New(layout.NewBorderLayout(nil, nil, openFolderButton, nil), openFolderButton, pathEntry),
+		container.NewHBox(testRACfgExists, testCanRW),
+		widget.NewSeparator(),
+	)
+
+	// tabs holding the app functions
+	tabs := container.NewAppTabs(
+		container.NewTabItem("ShmupArch Config", shmupArchOptionsLayout),
+		container.NewTabItem("Arcade Overlays", widget.NewLabel("foo")),
+		container.NewTabItem("Help", helpLayout),
+	)
+	tabs.SetTabLocation(container.TabLocationLeading)
+
+	//mainLayout := fyne.NewContainerWithLayout(layout.NewBorderLayout(foo, nil, nil, nil), foo, reportScroll)
+	mainLayout := container.New(layout.NewBorderLayout(retroArchPathLayout, reportScroll, nil, nil), retroArchPathLayout, reportScroll, tabs)
+	w.SetContent(mainLayout)
 
 	w.ShowAndRun()
+}
+
+func messagesToMD(messages []core.Message) string {
+	result := ""
+
+	for _, m := range messages {
+		status := "FAILED"
+		if m.Success {
+			status = "SUCCESS"
+		}
+		result += fmt.Sprintf("***%s*** | %s\n\n", status, m.Text)
+	}
+
+	return result
 }

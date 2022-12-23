@@ -1,9 +1,11 @@
 package core
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
+	"time"
 
 	"github.com/mitchellh/go-homedir"
 )
@@ -21,34 +23,44 @@ type Message struct {
 	Text    string
 }
 
-type SAIFI struct {
+type BezelDownloadJob func() Message
+
+// RetroArch Transformer
+type RetroArchChanger struct {
 	retroarchCfgDirPath string
 	timeStamp           string
+	withBezels          bool
 }
 
-func NewSAIFI(retroarchCfgDirPath string, options ...func(SAIFI) SAIFI) SAIFI {
-	sai := SAIFI{
+// WithBezels sets the option to also download bezels
+func WithBezels(r RetroArchChanger) RetroArchChanger {
+	r.withBezels = true
+	return r
+}
+
+func NewRATransformer(retroarchCfgDirPath string, options ...func(RetroArchChanger) RetroArchChanger) RetroArchChanger {
+	r := RetroArchChanger{
 		retroarchCfgDirPath: retroarchCfgDirPath,
 		timeStamp:           timeStamp(),
 	}
 
 	for _, opt := range options {
-		sai = opt(sai)
+		r = opt(r)
 	}
 
-	return sai
+	return r
 }
 
 // TODO - this one may be done better
-func (saifi SAIFI) SetShmupArchCoreSettings() ([]Message, error) {
+func (r RetroArchChanger) SetShmupArchCoreSettings() ([]Message, error) {
 	report := make([]Message, 0, len(GameSettings)+1)
 
 	// retroarch.cfg core settings
-	report = append(report, saifi.setSettings(GlobalSettings, "", RETROARCH_CFG))
+	report = append(report, r.setSettings(GlobalSettings, "", RETROARCH_CFG))
 
 	// FBNeo Game Settings
 	for gameName, cfgEntries := range GameSettings {
-		report = append(report, saifi.setSettings(cfgEntries, FBNEO_CFG_DIR, gameName+".cfg"))
+		report = append(report, r.setSettings(cfgEntries, FBNEO_CFG_DIR, gameName+".cfg"))
 	}
 
 	return report, nil
@@ -56,12 +68,34 @@ func (saifi SAIFI) SetShmupArchCoreSettings() ([]Message, error) {
 
 // CheckRetroarchCfgExists checks the given folder an existing retroarch.cfg
 // to determine if the given path is valid
-func (saifi SAIFI) CheckRetroarchCfgExists() bool {
-	info, err := os.Stat(filepath.Join(saifi.retroarchCfgDirPath, RETROARCH_CFG))
+func (r RetroArchChanger) CheckRetroarchCfgExists() bool {
+	info, err := os.Stat(filepath.Join(r.retroarchCfgDirPath, RETROARCH_CFG))
 	if os.IsNotExist(err) {
 		return false
 	}
 	return !info.IsDir()
+}
+
+func (r RetroArchChanger) GetBezelDownloadJobs() []BezelDownloadJob {
+	jobs := make([]BezelDownloadJob, 0, len(GameSettings))
+
+	for game := range GameSettings {
+		job := func() Message {
+			err := r.DownloadBezel(game)
+			if err != nil {
+				return Message{Success: false, Text: fmt.Sprintf("%s; Failed to download bezel: %v", game, err)}
+			}
+			return Message{Success: true, Text: fmt.Sprintf("%s; Bezel download successful", game)}
+		}
+		jobs = append(jobs, job)
+	}
+
+	return jobs
+}
+
+func (r RetroArchChanger) DownloadBezel(game string) error {
+	time.Sleep(250 * time.Millisecond)
+	return nil
 }
 
 // TryFindRetroarchCFGDir gives a d
