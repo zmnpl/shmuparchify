@@ -20,7 +20,7 @@ func Run() {
 	a := app.New()
 	a.Settings().SetTheme(newCustomTheme())
 	w := a.NewWindow("ShmupArchify - Make your RetroArch Shmup Ready")
-	w.Resize(fyne.NewSize(800, 500))
+	w.Resize(fyne.NewSize(600, 500))
 
 	hello := widget.NewLabel("Enter your RetroArch config dir below:")
 
@@ -55,7 +55,7 @@ func Run() {
 	reportRichText := widget.NewRichTextFromMarkdown(reportMD)
 	reportRichText.Wrapping = fyne.TextTruncate
 	reportScroll := container.NewVScroll(reportRichText)
-	reportScroll.SetMinSize(fyne.NewSize(200, 300))
+	reportScroll.SetMinSize(fyne.NewSize(200, 200))
 
 	// options
 	coreOptionsCheck := widget.NewCheck("ShmupArch Core Settings", func(value bool) {})
