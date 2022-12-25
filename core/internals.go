@@ -10,12 +10,16 @@ import (
 	"strings"
 )
 
-func (r RetroArchChanger) setSettings(cfgEntries []cfgEntry, subDir, fileName string) Message {
-	err := r.backupCfg(subDir, fileName)
-	if err != nil && !os.IsNotExist(err) {
-		return Message{Success: false, Text: fmt.Sprintf("%s (%s); Couldn't backup existing cfg, therefore skipping: %v", fileName, subDir, err.Error())}
+func (r RetroArchChanger) setSettings(cfgEntries []cfgEntry, subDir, fileName string, withBackup bool) Message {
+	// backup
+	if withBackup {
+		err := r.backupCfg(subDir, fileName)
+		if err != nil && !os.IsNotExist(err) {
+			return Message{Success: false, Text: fmt.Sprintf("%s (%s); Couldn't backup existing cfg, therefore skipping: %v", fileName, subDir, err.Error())}
+		}
 	}
-	err = updateCfg(filepath.Join(r.retroarchCfgDirPath, subDir, fileName), cfgEntries)
+
+	err := updateCfg(filepath.Join(r.retroarchCfgDirPath, subDir, fileName), cfgEntries)
 	if err != nil {
 		return Message{Success: false, Text: fmt.Sprintf("%s (%s); Couldn't optimize config: %v", fileName, subDir, err)}
 	}

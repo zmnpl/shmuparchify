@@ -2,6 +2,7 @@ package gui
 
 import (
 	"fmt"
+	"net/url"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -40,7 +41,7 @@ func Run() {
 		testRACfgExists.Enable()
 		testCanRW.Enable()
 		testRACfgExists.Checked = sai.CheckRetroarchCfgExists()
-		testCanRW.Checked = sai.CheckCanReadWrite()
+		testCanRW.Checked = sai.CheckPermissions()
 		testRACfgExists.Disable()
 		testCanRW.Disable()
 
@@ -68,18 +69,20 @@ func Run() {
 	dlProgress.Hidden = true
 
 	//button to run everything
-	okButton := widget.NewButton("Ok", func() {
+	okButton := widget.NewButton("Apply Settings", func() {
 		opts := make([]func(core.RetroArchChanger) core.RetroArchChanger, 0)
 
 		r := core.NewRATransformer(pathEntry.Text, opts...)
-		report, _ := r.SetShmupArchCoreSettings()
-		reportMD += messagesToMD(report)
+		// execute jobs
+		for _, j := range r.GetShmupArchJobs() {
+			reportMD += messageToMD(j())
+		}
 		reportRichText.ParseMarkdown(reportMD)
 
 		// download bezels
 		if false {
 			dlProgress.Hidden = false
-			bezelJobs := r.GetBezelDownloadJobs()
+			bezelJobs := r.GetBezelJobs()
 			dlProgress.Min = 0
 			dlProgress.Max = float64(len(bezelJobs))
 
@@ -103,13 +106,6 @@ func Run() {
 		container.NewHBox(layout.NewSpacer(), okButton),
 	)
 
-	helpLayout := container.NewVBox(
-		widget.NewLabel("foo"),
-		widget.NewLabel("foo"),
-		widget.NewLabel("foo"),
-		widget.NewLabel("foo"),
-	)
-
 	openFolderButton := widget.NewButtonWithIcon("", theme.FolderOpenIcon(), func() {})
 
 	retroArchPathLayout := container.NewVBox(
@@ -121,6 +117,17 @@ func Run() {
 		container.New(layout.NewBorderLayout(nil, nil, openFolderButton, nil), openFolderButton, pathEntry),
 		container.NewHBox(testRACfgExists, testCanRW),
 		widget.NewSeparator(),
+	)
+
+	githubUrl, _ := url.Parse("https://github.com/zmnpl/shmuparchify")
+	whatAndWhyUrl, _ := url.Parse("https://www.patreon.com/posts/article-what-is-57566721?l=fr")
+	videoUrl, _ := url.Parse("https://www.youtube.com/watch?v=Sec3r6RKAPg")
+	helpLayout := container.NewVBox(
+		widget.NewLabel("Find more information here:"),
+		widget.NewHyperlink("github.com/zmnpl/shmuparchify", githubUrl),
+		widget.NewLabel("About the origins of ShmupArch:"),
+		widget.NewHyperlink("What is ShmupArch? Why Does it Matter?", whatAndWhyUrl),
+		widget.NewHyperlink("Video on YouTube", videoUrl),
 	)
 
 	// tabs holding the app functions
@@ -138,16 +145,11 @@ func Run() {
 	w.ShowAndRun()
 }
 
-func messagesToMD(messages []core.Message) string {
-	result := ""
-
-	for _, m := range messages {
-		status := "FAILED"
-		if m.Success {
-			status = "SUCCESS"
-		}
-		result += fmt.Sprintf("***%s*** | %s\n\n", status, m.Text)
+func messageToMD(m core.Message) string {
+	result := "FAILED"
+	if m.Success {
+		result = "SUCCESS"
 	}
 
-	return result
+	return fmt.Sprintf("***%s*** | %s\n\n", result, m.Text)
 }
