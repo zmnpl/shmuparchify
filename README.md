@@ -19,7 +19,7 @@ Now, ***ShmupArchify*** is here for those who don't want to have a full repacked
 3) Follow the directions
 4) Shoot!
 
-![demo](https://raw.githubusercontent.com/zmnpl/shmuparchify/main/demo/guidemo.png)
+![demo](https://github.com/zmnpl/shmuparchify/blob/114cd9d8fcc07cbfb7760f69580f425e877f395f/demo/guidemo.png)
 
 
 ## What does it do exactly?
