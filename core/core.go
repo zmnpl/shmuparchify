@@ -76,6 +76,22 @@ func (r RetroArchChanger) CheckRetroarchCfgExists() bool {
 	return !info.IsDir()
 }
 
+func (r RetroArchChanger) CheckCanReadWrite() bool {
+	testFile := filepath.Join(r.retroarchCfgDirPath, "shmuparchify_rw.test")
+
+	err := os.WriteFile(testFile, []byte("testing read/write"), 0755)
+	if err != nil {
+		return false
+	}
+
+	err = os.Remove(testFile)
+	if err != nil {
+		return false
+	}
+
+	return true
+}
+
 func (r RetroArchChanger) GetBezelDownloadJobs() []BezelDownloadJob {
 	jobs := make([]BezelDownloadJob, 0, len(GameSettings))
 

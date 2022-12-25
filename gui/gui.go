@@ -24,12 +24,27 @@ func Run() {
 
 	hello := widget.NewLabel("Enter your RetroArch config dir below:")
 
+	// path checks
+	testRACfgExists := widget.NewCheck("retroarch.cfg exists", nil)
+	testRACfgExists.Disable()
+	testCanRW := widget.NewCheck("Can read/write", nil)
+	testCanRW.Disable()
+	testRACfgExists.Checked = true
+	testCanRW.Checked = true
 	// input field for path
 	pathEntry := widget.NewEntry()
 	pathEntry.SetText(core.TryFindRetroarchCFGDir())
 	pathEntry.Validator = func(string) error {
 		sai := core.NewRATransformer(pathEntry.Text)
-		if sai.CheckRetroarchCfgExists() {
+
+		testRACfgExists.Enable()
+		testCanRW.Enable()
+		testRACfgExists.Checked = sai.CheckRetroarchCfgExists()
+		testCanRW.Checked = sai.CheckCanReadWrite()
+		testRACfgExists.Disable()
+		testCanRW.Disable()
+
+		if testRACfgExists.Checked && testCanRW.Checked {
 			return nil
 		}
 		return fmt.Errorf("Yeah")
@@ -96,13 +111,6 @@ func Run() {
 	)
 
 	openFolderButton := widget.NewButtonWithIcon("", theme.FolderOpenIcon(), func() {})
-	testRACfgExists := widget.NewCheck("retroarch.cfg exists", nil)
-	testRACfgExists.Disable()
-	testCanRW := widget.NewCheck("Can read/write", nil)
-	testCanRW.Disable()
-
-	testRACfgExists.Checked = true
-	testCanRW.Checked = true
 
 	retroArchPathLayout := container.NewVBox(
 		widget.NewToolbar(
