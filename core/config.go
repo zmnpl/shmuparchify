@@ -165,7 +165,7 @@ func initFBNeoOverlays() {
 	}
 }
 
-func makeBezelCfg(raCfgDir string, gameName string) []cfgEntry {
+func makeOverlayCfg(raCfgDir string, gameName string) []cfgEntry {
 	return []cfgEntry{
 		{option: "input_overlay", value: filepath.Join(raCfgDir, OVERLAY_PATH, gameName+".cfg")},
 		//{option: "menu_show_advanced_settings", value: "true"},

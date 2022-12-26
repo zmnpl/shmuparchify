@@ -84,13 +84,13 @@ func Run() {
 		opts := make([]func(core.RetroArchChanger) core.RetroArchChanger, 0)
 		r := core.NewRATransformer(pathEntry.Text, opts...)
 
-		bezelJobs := r.GetBezelJobs()
+		overlayJobs := r.GetOverlayJobs()
 		overlayDLProgress.Min = 0
-		overlayDLProgress.Max = float64(len(bezelJobs))
+		overlayDLProgress.Max = float64(len(overlayJobs))
 
 		progress := 0.0
 		go func() {
-			for _, j := range bezelJobs {
+			for _, j := range overlayJobs {
 				reportMD += messageToMD(j())
 
 				// update progress bar

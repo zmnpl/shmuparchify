@@ -29,12 +29,12 @@ type RetroArchChanger struct {
 	retroarchCfgDirPath string
 	romPath             string
 	timeStamp           string
-	withBezels          bool
+	withOverlays        bool
 }
 
-// WithBezels sets the option to also download bezels
-func WithBezels(r RetroArchChanger) RetroArchChanger {
-	r.withBezels = true
+// WithOverlays sets the option to also download overlays
+func WithOverlays(r RetroArchChanger) RetroArchChanger {
+	r.withOverlays = true
 	return r
 }
 
@@ -87,7 +87,7 @@ func (r RetroArchChanger) GetShmupArchJobs() []Job {
 	return jobs
 }
 
-func (r RetroArchChanger) GetBezelJobs() []Job {
+func (r RetroArchChanger) GetOverlayJobs() []Job {
 	jobs := make([]Job, 0, len(GameSettings))
 
 	for g := range GameSettings {
@@ -96,13 +96,19 @@ func (r RetroArchChanger) GetBezelJobs() []Job {
 		game := g
 
 		job := func() Message {
-			// TODO: add bezel config here as well
+			// TODO: add overlay config here as well
 
 			err := r.DownloadOverlay(game)
 			if err != nil {
-				return Message{Success: false, Text: fmt.Sprintf("%s; Failed to download bezel: %v", game, err)}
+				return Message{Success: false, Text: fmt.Sprintf("%s; Failed to download overlay: %v", game, err)}
 			}
-			return Message{Success: true, Text: fmt.Sprintf("%s; Bezel download successful", game)}
+
+			m := r.setSettings(makeOverlayCfg(r.retroarchCfgDirPath, game), FBNEO_CFG_DIR, game+".cfg", true)
+			if !m.Success {
+				return Message{Success: false, Text: fmt.Sprintf("%s; Downloaded overlay but could not apply settings accordingly: %v", game, err)}
+			}
+
+			return Message{Success: true, Text: fmt.Sprintf("%s; Overlay download successful", game)}
 		}
 		jobs = append(jobs, job)
 	}
@@ -120,6 +126,7 @@ func (r RetroArchChanger) DownloadOverlay(game string) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 

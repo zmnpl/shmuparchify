@@ -66,7 +66,7 @@ func initialModel() model {
 		tmp_running:          "Now would go running",
 
 		// Our to-do list is a grocery list
-		choices: []string{"ShmupArch Core", "Bezels", "Yoko/Tate", "Button Config"},
+		choices: []string{"ShmupArch Core", "Overlays", "Yoko/Tate", "Button Config"},
 		// A map which indicates which choices are selected. We're using
 		// the  map like a mathematical set. The keys refer to the indexes
 		// of the `choices` slice, above.
