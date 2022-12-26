@@ -1,6 +1,9 @@
 package core
 
-import "fmt"
+import (
+	"fmt"
+	"path/filepath"
+)
 
 type cfgEntry struct {
 	option string
@@ -18,10 +21,12 @@ var (
 	OverlayFBNeoGames map[string][]cfgEntry
 )
 
-var (
+const (
 	RETROARCH_CFG = "retroarch.cfg"
 	FBNEO_CFG     = "fbneo.cfg"
 	FBNEO_CFG_DIR = "config/FinalBurn Neo/"
+
+	OVERLAY_PATH = "/overlay/arcade-overlays/overlays/borders-Various_Creators/"
 )
 
 func init() {
@@ -157,5 +162,12 @@ func initFBNeoOverlays() {
 	OverlayFBNeoGames["ddonpach"] = []cfgEntry{
 		{option: "input_overlay", value: "~/.config/retroarch/overlay/arcade-overlays/overlays/borders-Various_Creators/ddonpach.cfg"},
 		{option: "menu_show_advanced_settings", value: "true"},
+	}
+}
+
+func makeBezelCfg(raCfgDir string, gameName string) []cfgEntry {
+	return []cfgEntry{
+		{option: "input_overlay", value: filepath.Join(raCfgDir, OVERLAY_PATH, gameName+".cfg")},
+		//{option: "menu_show_advanced_settings", value: "true"},
 	}
 }

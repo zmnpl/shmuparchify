@@ -5,9 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+)
+
+const (
+	OVERLAY_DOWNLOAD_URL = "https://raw.githubusercontent.com/libretro/arcade-overlays/master/overlays/borders-Various_Creators/%s"
 )
 
 func (r RetroArchChanger) setSettings(cfgEntries []cfgEntry, subDir, fileName string, withBackup bool) Message {
@@ -121,5 +126,27 @@ func writeCfg(cfgPath string, rows []string) error {
 	defer f.Close()
 	cfgContent := strings.Join(rows, "\n")
 	f.Write([]byte(cfgContent))
+	return nil
+}
+
+func downloadFile(uri string, localFilePath string) error {
+	resp, err := http.Get(uri)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	fileHandle, err := os.OpenFile(localFilePath, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0644)
+	//fileHandle, err := os.Create(localFilePath)
+	if err != nil {
+		return err
+	}
+	defer fileHandle.Close()
+
+	_, err = io.Copy(fileHandle, resp.Body)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

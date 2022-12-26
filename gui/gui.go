@@ -64,10 +64,6 @@ func Run() {
 	coreOptionsCheck.Disable()
 	cosmeticsCheck := widget.NewCheck("RetroArch Cosmetics", func(value bool) {})
 
-	// progress bar
-	dlProgress := widget.NewProgressBar()
-	dlProgress.Hidden = true
-
 	//button to run everything
 	okButton := widget.NewButton("Apply Settings", func() {
 		opts := make([]func(core.RetroArchChanger) core.RetroArchChanger, 0)
@@ -77,28 +73,38 @@ func Run() {
 		for _, j := range r.GetShmupArchJobs() {
 			reportMD += messageToMD(j())
 		}
+
 		reportRichText.ParseMarkdown(reportMD)
-
-		// download bezels
-		if false {
-			dlProgress.Hidden = false
-			bezelJobs := r.GetBezelJobs()
-			dlProgress.Min = 0
-			dlProgress.Max = float64(len(bezelJobs))
-
-			progress := 0.0
-			go func() {
-				for _, j := range bezelJobs {
-					j()
-					progress += 1
-					dlProgress.SetValue(progress)
-				}
-			}()
-		}
-
 		reportScroll.ScrollToBottom()
 	})
 
+	// button to download overlays
+	overlayDLProgress := widget.NewProgressBar()
+	dlOverlaysButton := widget.NewButton("Download Overlays", func() {
+		opts := make([]func(core.RetroArchChanger) core.RetroArchChanger, 0)
+		r := core.NewRATransformer(pathEntry.Text, opts...)
+
+		bezelJobs := r.GetBezelJobs()
+		overlayDLProgress.Min = 0
+		overlayDLProgress.Max = float64(len(bezelJobs))
+
+		progress := 0.0
+		go func() {
+			for _, j := range bezelJobs {
+				reportMD += messageToMD(j())
+
+				// update progress bar
+				progress += 1
+				overlayDLProgress.SetValue(progress)
+
+				// update report view
+				reportRichText.ParseMarkdown(reportMD)
+				reportScroll.ScrollToBottom()
+			}
+		}()
+	})
+
+	// tab: ShmupArch Options
 	shmupArchOptionsLayout := container.NewVBox(
 		widget.NewLabel("Options"),
 		container.NewHBox(coreOptionsCheck, cosmeticsCheck),
@@ -106,19 +112,16 @@ func Run() {
 		container.NewHBox(layout.NewSpacer(), okButton),
 	)
 
-	openFolderButton := widget.NewButtonWithIcon("", theme.FolderOpenIcon(), func() {})
-
-	retroArchPathLayout := container.NewVBox(
-		widget.NewToolbar(
-			widget.NewToolbarAction(theme.FileIcon(), nil),
-			widget.NewToolbarAction(theme.CancelIcon(), func() {}),
-		),
-		hello,
-		container.New(layout.NewBorderLayout(nil, nil, openFolderButton, nil), openFolderButton, pathEntry),
-		container.NewHBox(testRACfgExists, testCanRW),
+	// tab: Overlays Download
+	downloadOverlaysLayout := container.NewVBox(
+		widget.NewLabel("Optional: Enter your ROM Path to download overlays for them as well"),
+		widget.NewEntry(), // TODO: Make this non-anonymous and use it
 		widget.NewSeparator(),
+		container.NewHBox(layout.NewSpacer(), dlOverlaysButton),
+		overlayDLProgress,
 	)
 
+	// tab: help
 	githubUrl, _ := url.Parse("https://github.com/zmnpl/shmuparchify")
 	whatAndWhyUrl, _ := url.Parse("https://www.patreon.com/posts/article-what-is-57566721?l=fr")
 	videoUrl, _ := url.Parse("https://www.youtube.com/watch?v=Sec3r6RKAPg")
@@ -130,10 +133,23 @@ func Run() {
 		widget.NewHyperlink("Video on YouTube", videoUrl),
 	)
 
+	// top section with ra config path entry
+	openFolderButton := widget.NewButtonWithIcon("", theme.FolderOpenIcon(), func() {})
+	retroArchPathLayout := container.NewVBox(
+		widget.NewToolbar(
+			widget.NewToolbarAction(theme.FileIcon(), nil),
+			widget.NewToolbarAction(theme.CancelIcon(), func() {}),
+		),
+		hello,
+		container.New(layout.NewBorderLayout(nil, nil, openFolderButton, nil), openFolderButton, pathEntry),
+		container.NewHBox(testRACfgExists, testCanRW),
+		widget.NewSeparator(),
+	)
+
 	// tabs holding the app functions
 	tabs := container.NewAppTabs(
 		container.NewTabItem("ShmupArch Config", shmupArchOptionsLayout),
-		container.NewTabItem("Arcade Overlays", widget.NewLabel("foo")),
+		container.NewTabItem("Arcade Overlays", downloadOverlaysLayout),
 		container.NewTabItem("Help", helpLayout),
 	)
 	tabs.SetTabLocation(container.TabLocationLeading)

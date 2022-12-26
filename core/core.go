@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"time"
 
 	"github.com/mitchellh/go-homedir"
 )
@@ -99,7 +98,7 @@ func (r RetroArchChanger) GetBezelJobs() []Job {
 		job := func() Message {
 			// TODO: add bezel config here as well
 
-			err := r.DownloadBezel(game)
+			err := r.DownloadOverlay(game)
 			if err != nil {
 				return Message{Success: false, Text: fmt.Sprintf("%s; Failed to download bezel: %v", game, err)}
 			}
@@ -111,8 +110,16 @@ func (r RetroArchChanger) GetBezelJobs() []Job {
 	return jobs
 }
 
-func (r RetroArchChanger) DownloadBezel(game string) error {
-	time.Sleep(250 * time.Millisecond)
+func (r RetroArchChanger) DownloadOverlay(game string) error {
+	os.MkdirAll(filepath.Join(r.retroarchCfgDirPath, OVERLAY_PATH), 0755)
+	err := downloadFile(fmt.Sprintf(OVERLAY_DOWNLOAD_URL, game+".cfg"), filepath.Join(r.retroarchCfgDirPath, OVERLAY_PATH, game+".cfg"))
+	if err != nil {
+		return err
+	}
+	err = downloadFile(fmt.Sprintf(OVERLAY_DOWNLOAD_URL, game+".png"), filepath.Join(r.retroarchCfgDirPath, OVERLAY_PATH, game+".png"))
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
