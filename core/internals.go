@@ -15,20 +15,20 @@ const (
 	OVERLAY_DOWNLOAD_URL = "https://raw.githubusercontent.com/libretro/arcade-overlays/master/overlays/borders-Various_Creators/%s"
 )
 
-func (r RetroArchChanger) setSettings(cfgEntries []cfgEntry, subDir, fileName string, withBackup bool) Message {
+func (r RetroArchChanger) setSettings(cfgEntries []cfgEntry, subDir, fileName string, withBackup bool) error {
 	// backup
 	if withBackup {
 		err := r.backupCfg(subDir, fileName)
 		if err != nil && !os.IsNotExist(err) {
-			return Message{Success: false, Text: fmt.Sprintf("%s (%s); Couldn't backup existing cfg, therefore skipping: %v", fileName, subDir, err.Error())}
+			return err
 		}
 	}
 
 	err := updateCfg(filepath.Join(r.retroarchCfgDirPath, subDir, fileName), cfgEntries)
 	if err != nil {
-		return Message{Success: false, Text: fmt.Sprintf("%s (%s); Couldn't optimize config: %v", fileName, subDir, err)}
+		return err
 	}
-	return Message{Success: true, Text: fmt.Sprintf("%v (%s)", fileName, subDir)}
+	return nil
 }
 
 func (r RetroArchChanger) backupCfg(subDir, fileName string) error {
@@ -135,6 +135,11 @@ func downloadFile(uri string, localFilePath string) error {
 		return err
 	}
 	defer resp.Body.Close()
+
+	// check response code
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("%s; Could not download: %v", uri, resp.StatusCode)
+	}
 
 	fileHandle, err := os.OpenFile(localFilePath, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0644)
 	//fileHandle, err := os.Create(localFilePath)

@@ -51,26 +51,15 @@ func NewRATransformer(retroarchCfgDirPath string, options ...func(RetroArchChang
 	return r
 }
 
-// TODO - this one may be done better
-func (r RetroArchChanger) SetShmupArchCoreSettings() ([]Message, error) {
-	report := make([]Message, 0, len(GameSettings)+1)
-
-	// retroarch.cfg core settings
-	report = append(report, r.setSettings(GlobalSettings, "", RETROARCH_CFG, true))
-
-	// FBNeo Game Settings
-	for gameName, cfgEntries := range GameSettings {
-		report = append(report, r.setSettings(cfgEntries, FBNEO_CFG_DIR, gameName+".cfg", true))
-	}
-
-	return report, nil
-}
-
 func (r RetroArchChanger) GetShmupArchJobs() []Job {
 	jobs := make([]Job, 0, len(GameSettings)+1)
 	// retroarch.cfg core settings
 	jobs = append(jobs, func() Message {
-		return r.setSettings(GlobalSettings, "", RETROARCH_CFG, true)
+		err := r.setSettings(GlobalSettings, "", RETROARCH_CFG, true)
+		if err != nil {
+			return Message{Success: false, Text: fmt.Sprintf("retroarch.cfg; Could not apply global settings: %v", err)}
+		}
+		return Message{Success: true, Text: "retroarch.cfg; Applied global settings"}
 	})
 
 	// FBNeo Game Settings
@@ -80,7 +69,13 @@ func (r RetroArchChanger) GetShmupArchJobs() []Job {
 		gameCfg := g + ".cfg"
 		settings := GameSettings[g]
 		// create job
-		j := func() Message { return r.setSettings(settings, FBNEO_CFG_DIR, gameCfg, true) }
+		j := func() Message {
+			err := r.setSettings(settings, FBNEO_CFG_DIR, gameCfg, true)
+			if err != nil {
+				return Message{Success: false, Text: fmt.Sprintf("%s; (%s) Could not apply settings: %v", gameCfg, FBNEO_CFG_DIR, err)}
+			}
+			return Message{Success: true, Text: fmt.Sprintf("%s; (%s) Applied settings", gameCfg, FBNEO_CFG_DIR)}
+		}
 		jobs = append(jobs, j)
 	}
 
@@ -103,8 +98,8 @@ func (r RetroArchChanger) GetOverlayJobs() []Job {
 				return Message{Success: false, Text: fmt.Sprintf("%s; Failed to download overlay: %v", game, err)}
 			}
 
-			m := r.setSettings(makeOverlayCfg(r.retroarchCfgDirPath, game), FBNEO_CFG_DIR, game+".cfg", true)
-			if !m.Success {
+			err = r.setSettings(makeOverlayCfg(r.retroarchCfgDirPath, game), FBNEO_CFG_DIR, game+".cfg", true)
+			if err != nil {
 				return Message{Success: false, Text: fmt.Sprintf("%s; Downloaded overlay but could not apply settings accordingly: %v", game, err)}
 			}
 
