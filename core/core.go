@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -142,11 +143,25 @@ func TryFindRetroarchCFGDir() string {
 	}
 }
 
+// CheckPathExists just checks if the given folder exists in the file system
+func (r RetroArchChanger) CheckPathExists() bool {
+	_, err := os.Stat(r.retroarchCfgDirPath)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return true
+}
+
 // CheckRetroarchCfgExists checks the given folder an existing retroarch.cfg
 // to determine if the given path is valid
 func (r RetroArchChanger) CheckRetroarchCfgExists() bool {
 	info, err := os.Stat(filepath.Join(r.retroarchCfgDirPath, RETROARCH_CFG))
 	if os.IsNotExist(err) {
+		//err = r.CopyDefaultCfg()
+		//if err != nil {
+		//	return false
+		//}
+		//return true
 		return false
 	}
 	return !info.IsDir()
@@ -167,4 +182,26 @@ func (r RetroArchChanger) CheckPermissions() bool {
 	}
 
 	return true
+}
+
+// CopyDefaultCfg tries a simple copy of the retroarch default config
+func (r RetroArchChanger) CopyDefaultCfg() error {
+	_, err := os.Stat(filepath.Join(r.retroarchCfgDirPath, RETROARCH_CFG))
+	if os.IsNotExist(err) {
+		// config does not exist, but maybe default config in same dir (windows zip budle comes like that)
+		// try very naive copy of default cfg to make the dir ready
+		_, err := os.Stat(filepath.Join(r.retroarchCfgDirPath, RETROARCH_DEFAULT_CFG))
+		if err != nil {
+			return err
+		}
+		defaultCfg, err := ioutil.ReadFile(filepath.Join(r.retroarchCfgDirPath, RETROARCH_DEFAULT_CFG))
+		if err != nil {
+			return err
+		}
+		err = ioutil.WriteFile(filepath.Join(r.retroarchCfgDirPath, RETROARCH_CFG), defaultCfg, 0644)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

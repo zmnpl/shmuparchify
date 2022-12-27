@@ -22,9 +22,10 @@ var (
 )
 
 const (
-	RETROARCH_CFG = "retroarch.cfg"
-	FBNEO_CFG     = "fbneo.cfg"
-	FBNEO_CFG_DIR = "config/FinalBurn Neo/"
+	RETROARCH_CFG         = "retroarch.cfg"
+	RETROARCH_DEFAULT_CFG = "retroarch.default.cfg"
+	FBNEO_CFG             = "fbneo.cfg"
+	FBNEO_CFG_DIR         = "config/FinalBurn Neo/"
 
 	OVERLAY_PATH = "/overlay/arcade-overlays/overlays/borders-Various_Creators/"
 )
