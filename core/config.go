@@ -11,7 +11,7 @@ type cfgEntry struct {
 }
 
 func (e cfgEntry) String() string {
-	return fmt.Sprintf("\"%v\" = \"%v\"", e.option, e.value)
+	return fmt.Sprintf("%v = \"%v\"", e.option, e.value)
 }
 
 var (
