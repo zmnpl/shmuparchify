@@ -133,7 +133,7 @@ func TryFindRetroarchCFGDir() string {
 	os := runtime.GOOS
 	switch os {
 	case "windows":
-		return ""
+		return "C:\\RetroArch-Win64"
 	case "darwin":
 		return filepath.Join(home, ".config/retroarch")
 	case "linux":

@@ -70,6 +70,11 @@ func initFBNeoGameSettings() {
 		{option: "run_ahead_frames", value: "3"},
 	}
 
+	// addition
+	GameSettings["batrider"] = []cfgEntry{
+		{option: "run_ahead_frames", value: "3"},
+	}
+
 	GameSettings["bbakraidj"] = []cfgEntry{
 		{option: "run_ahead_frames", value: "3"},
 	}
