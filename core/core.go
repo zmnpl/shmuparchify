@@ -53,7 +53,7 @@ func NewRATransformer(retroarchCfgDirPath string, options ...func(RetroArchChang
 }
 
 func (r RetroArchChanger) GetShmupArchJobs() []Job {
-	jobs := make([]Job, 0, len(GameSettings)+1)
+	jobs := make([]Job, 0, len(ShmupArchGameSettings)+1)
 	// retroarch.cfg core settings
 	jobs = append(jobs, func() Message {
 		err := r.setSettings(GlobalSettings, "", RETROARCH_CFG, true)
@@ -64,11 +64,11 @@ func (r RetroArchChanger) GetShmupArchJobs() []Job {
 	})
 
 	// FBNeo Game Settings
-	for g := range GameSettings {
+	for g := range ShmupArchGameSettings {
 		// need to copy into new variables to use in closure (otherwise pointer to loop var is used)
 		// details see: https://github.com/golang/go/wiki/CommonMistakes
 		gameCfg := g + ".cfg"
-		settings := GameSettings[g]
+		settings := ShmupArchGameSettings[g]
 		// create job
 		j := func() Message {
 			err := r.setSettings(settings, FBNEO_CFG_DIR, gameCfg, true)
@@ -84,9 +84,9 @@ func (r RetroArchChanger) GetShmupArchJobs() []Job {
 }
 
 func (r RetroArchChanger) GetOverlayJobs() []Job {
-	jobs := make([]Job, 0, len(GameSettings))
+	jobs := make([]Job, 0, len(ShmupArchGameSettings))
 
-	for g := range GameSettings {
+	for g := range ShmupArchGameSettings {
 		// need to copy into new variables to use in closure (otherwise pointer to loop var is used)
 		// details see: https://github.com/golang/go/wiki/CommonMistakes
 		game := g
