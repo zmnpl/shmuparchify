@@ -35,6 +35,13 @@ func init() {
 	initGlobalSettings()
 	initFBNeoCoreSettings()
 	initFBNeoGameSettings()
+	initFBNeoGameSettingsAdditional()
+	// add additionals to ShmupArch defaults
+	for k, v := range AdditionalGameSettings {
+		if _, in := ShmupArchGameSettings[k]; !in {
+			ShmupArchGameSettings[k] = v
+		}
+	}
 	initFBNeoOverlays()
 }
 
