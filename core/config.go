@@ -15,11 +15,11 @@ func (e cfgEntry) String() string {
 }
 
 var (
-	GlobalSettings         []cfgEntry
-	FBNeoCoreSettings      []cfgEntry
-	ShmupArchGameSettings  map[string][]cfgEntry
-	AdditionalGameSettings map[string][]cfgEntry
-	OverlayFBNeoGames      map[string][]cfgEntry
+	GlobalSettings        []cfgEntry
+	FBNeoCoreSettings     []cfgEntry
+	ShmupArchGameSettings map[string][]cfgEntry
+	GameSettingsNonShmups map[string][]cfgEntry
+	OverlayFBNeoGames     map[string][]cfgEntry
 )
 
 const (
@@ -35,13 +35,7 @@ func init() {
 	initGlobalSettings()
 	initFBNeoCoreSettings()
 	initFBNeoGameSettings()
-	initFBNeoGameSettingsAdditional()
-	// add additionals to ShmupArch defaults
-	for k, v := range AdditionalGameSettings {
-		if _, in := ShmupArchGameSettings[k]; !in {
-			ShmupArchGameSettings[k] = v
-		}
-	}
+	initFBNeoGameSettingsNonShmups()
 	initFBNeoOverlays()
 }
 
@@ -70,11 +64,28 @@ func initFBNeoCoreSettings() {
 func initFBNeoGameSettings() {
 	ShmupArchGameSettings = make(map[string][]cfgEntry)
 
+	// assumed
+	ShmupArchGameSettings["1941"] = []cfgEntry{
+		{option: "run_ahead_frames", value: "3"},
+	}
+
 	ShmupArchGameSettings["1941j"] = []cfgEntry{
 		{option: "run_ahead_frames", value: "3"},
 	}
 
+	// assumed
+	ShmupArchGameSettings["batrider"] = []cfgEntry{
+		{option: "run_ahead_frames", value: "3"},
+	}
+
 	ShmupArchGameSettings["batriderj"] = []cfgEntry{
+		{option: "run_ahead_frames", value: "3"},
+	}
+
+	ShmupArchGameSettings["batsugun"] = []cfgEntry{}
+
+	// assumed
+	ShmupArchGameSettings["bbakraid"] = []cfgEntry{
 		{option: "run_ahead_frames", value: "3"},
 	}
 
@@ -89,97 +100,6 @@ func initFBNeoGameSettings() {
 
 	ShmupArchGameSettings["blazstar"] = []cfgEntry{
 		{option: "run_ahead_frames", value: "2"},
-	}
-
-	ShmupArchGameSettings["esprade"] = []cfgEntry{
-		{option: "run_ahead_frames", value: "2"},
-	}
-
-	ShmupArchGameSettings["gigawingj"] = []cfgEntry{
-		{option: "run_ahead_frames", value: "3"},
-	}
-
-	ShmupArchGameSettings["gunbird"] = []cfgEntry{
-		{option: "run_ahead_frames", value: "4"},
-	}
-
-	ShmupArchGameSettings["guwange"] = []cfgEntry{
-		{option: "run_ahead_frames", value: "2"},
-	}
-
-	ShmupArchGameSettings["metalb"] = []cfgEntry{
-		{option: "run_ahead_frames", value: "2"},
-	}
-
-	ShmupArchGameSettings["mmatrixj"] = []cfgEntry{
-		{option: "run_ahead_frames", value: "4"},
-	}
-
-	ShmupArchGameSettings["mslug"] = []cfgEntry{
-		{option: "run_ahead_frames", value: "4"},
-	}
-
-	ShmupArchGameSettings["mslug2"] = []cfgEntry{
-		{option: "run_ahead_frames", value: "3"},
-	}
-
-	ShmupArchGameSettings["mslug3"] = []cfgEntry{
-		{option: "run_ahead_frames", value: "2"},
-	}
-
-	ShmupArchGameSettings["mslug4"] = []cfgEntry{
-		{option: "run_ahead_frames", value: "2"},
-	}
-
-	ShmupArchGameSettings["mslugx"] = []cfgEntry{
-		{option: "run_ahead_frames", value: "3"},
-	}
-
-	ShmupArchGameSettings["p47j"] = []cfgEntry{
-		{option: "run_ahead_frames", value: "2"},
-	}
-
-	ShmupArchGameSettings["progearj"] = []cfgEntry{
-		{option: "run_ahead_frames", value: "3"},
-	}
-
-	ShmupArchGameSettings["rayforce"] = []cfgEntry{
-		{option: "run_ahead_frames", value: "2"},
-	}
-
-	ShmupArchGameSettings["rtype"] = []cfgEntry{
-		{option: "run_ahead_frames", value: "2"},
-	}
-
-	ShmupArchGameSettings["rtype2"] = []cfgEntry{
-		{option: "run_ahead_frames", value: "2"},
-	}
-
-	ShmupArchGameSettings["rtypeleo"] = []cfgEntry{
-		{option: "run_ahead_frames", value: "3"},
-	}
-
-	ShmupArchGameSettings["s1945"] = []cfgEntry{
-		{option: "run_ahead_frames", value: "4"},
-	}
-}
-
-// game specific settings for fb neo roms
-func initFBNeoGameSettingsAdditional() {
-	AdditionalGameSettings = make(map[string][]cfgEntry)
-
-	ShmupArchGameSettings["1941"] = []cfgEntry{
-		{option: "run_ahead_frames", value: "3"},
-	}
-
-	ShmupArchGameSettings["batrider"] = []cfgEntry{
-		{option: "run_ahead_frames", value: "3"},
-	}
-
-	ShmupArchGameSettings["batsugun"] = []cfgEntry{}
-
-	ShmupArchGameSettings["bbakraid"] = []cfgEntry{
-		{option: "run_ahead_frames", value: "3"},
 	}
 
 	ShmupArchGameSettings["darius"] = []cfgEntry{}
@@ -206,15 +126,23 @@ func initFBNeoGameSettingsAdditional() {
 
 	ShmupArchGameSettings["deathsml"] = []cfgEntry{}
 
+	ShmupArchGameSettings["dfeveron"] = []cfgEntry{}
+
 	ShmupArchGameSettings["donpachi"] = []cfgEntry{}
 
 	ShmupArchGameSettings["donpachij"] = []cfgEntry{}
 
 	ShmupArchGameSettings["dragnblz"] = []cfgEntry{}
 
+	ShmupArchGameSettings["dsmbl"] = []cfgEntry{}
+
 	ShmupArchGameSettings["espgal"] = []cfgEntry{}
 
 	ShmupArchGameSettings["espgal2"] = []cfgEntry{}
+
+	ShmupArchGameSettings["esprade"] = []cfgEntry{
+		{option: "run_ahead_frames", value: "2"},
+	}
 
 	ShmupArchGameSettings["futari10"] = []cfgEntry{}
 
@@ -226,35 +154,72 @@ func initFBNeoGameSettingsAdditional() {
 
 	ShmupArchGameSettings["galaga3"] = []cfgEntry{}
 
+	// assumed
 	ShmupArchGameSettings["gigawing"] = []cfgEntry{
 		{option: "run_ahead_frames", value: "3"},
 	}
 
+	ShmupArchGameSettings["gigawingj"] = []cfgEntry{
+		{option: "run_ahead_frames", value: "3"},
+	}
+
+	ShmupArchGameSettings["gunbird"] = []cfgEntry{
+		{option: "run_ahead_frames", value: "4"},
+	}
+
+	// assumed
 	ShmupArchGameSettings["gunbird2"] = []cfgEntry{
 		{option: "run_ahead_frames", value: "4"},
 	}
 
+	ShmupArchGameSettings["guwange"] = []cfgEntry{
+		{option: "run_ahead_frames", value: "2"},
+	}
+
+	ShmupArchGameSettings["ibara"] = []cfgEntry{}
+
 	ShmupArchGameSettings["ikaruga"] = []cfgEntry{}
+
+	ShmupArchGameSettings["inthunt"] = []cfgEntry{}
 
 	ShmupArchGameSettings["ket"] = []cfgEntry{}
 
 	ShmupArchGameSettings["ketarr"] = []cfgEntry{}
 
+	ShmupArchGameSettings["metalb"] = []cfgEntry{
+		{option: "run_ahead_frames", value: "2"},
+	}
+
+	// assumed
 	ShmupArchGameSettings["mmatrix"] = []cfgEntry{
 		{option: "run_ahead_frames", value: "4"},
 	}
 
-	ShmupArchGameSettings["mslug5"] = []cfgEntry{}
+	ShmupArchGameSettings["mmatrixj"] = []cfgEntry{
+		{option: "run_ahead_frames", value: "4"},
+	}
 
-	ShmupArchGameSettings["mslug6"] = []cfgEntry{}
+	ShmupArchGameSettings["mmpork"] = []cfgEntry{}
 
 	ShmupArchGameSettings["mushisam"] = []cfgEntry{}
 
+	// assumed
 	ShmupArchGameSettings["p47"] = []cfgEntry{
 		{option: "run_ahead_frames", value: "2"},
 	}
 
+	ShmupArchGameSettings["p47j"] = []cfgEntry{
+		{option: "run_ahead_frames", value: "2"},
+	}
+
+	ShmupArchGameSettings["pinkswts"] = []cfgEntry{}
+
+	// assumed
 	ShmupArchGameSettings["progear"] = []cfgEntry{
+		{option: "run_ahead_frames", value: "3"},
+	}
+
+	ShmupArchGameSettings["progearj"] = []cfgEntry{
 		{option: "run_ahead_frames", value: "3"},
 	}
 
@@ -262,12 +227,64 @@ func initFBNeoGameSettingsAdditional() {
 
 	ShmupArchGameSettings["raiden2"] = []cfgEntry{}
 
+	ShmupArchGameSettings["rayforce"] = []cfgEntry{
+		{option: "run_ahead_frames", value: "2"},
+	}
+
+	ShmupArchGameSettings["rtype"] = []cfgEntry{
+		{option: "run_ahead_frames", value: "2"},
+	}
+
+	ShmupArchGameSettings["rtype2"] = []cfgEntry{
+		{option: "run_ahead_frames", value: "2"},
+	}
+
+	ShmupArchGameSettings["rtypeleo"] = []cfgEntry{
+		{option: "run_ahead_frames", value: "3"},
+	}
+
 	ShmupArchGameSettings["s1945"] = []cfgEntry{
 		{option: "run_ahead_frames", value: "4"},
 	}
 
 	ShmupArchGameSettings["s1945ii"] = []cfgEntry{}
 
+	ShmupArchGameSettings["sengoku"] = []cfgEntry{}
+
+	ShmupArchGameSettings["sengoku2"] = []cfgEntry{}
+
+	ShmupArchGameSettings["sengoku3"] = []cfgEntry{}
+
+	ShmupArchGameSettings["tfrceac"] = []cfgEntry{}
+}
+
+// game specific settings for fb neo roms
+func initFBNeoGameSettingsNonShmups() {
+	GameSettingsNonShmups = make(map[string][]cfgEntry)
+
+	GameSettingsNonShmups["mslug"] = []cfgEntry{
+		{option: "run_ahead_frames", value: "4"},
+	}
+
+	GameSettingsNonShmups["mslug2"] = []cfgEntry{
+		{option: "run_ahead_frames", value: "3"},
+	}
+
+	GameSettingsNonShmups["mslug3"] = []cfgEntry{
+		{option: "run_ahead_frames", value: "2"},
+	}
+
+	GameSettingsNonShmups["mslug4"] = []cfgEntry{
+		{option: "run_ahead_frames", value: "2"},
+	}
+
+	GameSettingsNonShmups["mslugx"] = []cfgEntry{
+		{option: "run_ahead_frames", value: "3"},
+	}
+
+	GameSettingsNonShmups["mslug5"] = []cfgEntry{}
+
+	GameSettingsNonShmups["mslug6"] = []cfgEntry{}
 }
 
 func initFBNeoOverlays() {

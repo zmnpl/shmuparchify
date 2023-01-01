@@ -63,12 +63,29 @@ func (r RetroArchChanger) GetShmupArchJobs() []Job {
 		return Message{Success: true, Text: "retroarch.cfg; Applied global settings"}
 	})
 
-	// FBNeo Game Settings
+	// FBNeo Shmup Settings
 	for g := range ShmupArchGameSettings {
 		// need to copy into new variables to use in closure (otherwise pointer to loop var is used)
 		// details see: https://github.com/golang/go/wiki/CommonMistakes
 		gameCfg := g + ".cfg"
 		settings := ShmupArchGameSettings[g]
+		// create job
+		j := func() Message {
+			err := r.setSettings(settings, FBNEO_CFG_DIR, gameCfg, true)
+			if err != nil {
+				return Message{Success: false, Text: fmt.Sprintf("%s; (%s) Could not apply settings: %v", gameCfg, FBNEO_CFG_DIR, err)}
+			}
+			return Message{Success: true, Text: fmt.Sprintf("%s; (%s) Applied settings", gameCfg, FBNEO_CFG_DIR)}
+		}
+		jobs = append(jobs, j)
+	}
+
+	// FBNeo Non-Shmups Settings
+	for g := range GameSettingsNonShmups {
+		// need to copy into new variables to use in closure (otherwise pointer to loop var is used)
+		// details see: https://github.com/golang/go/wiki/CommonMistakes
+		gameCfg := g + ".cfg"
+		settings := GameSettingsNonShmups[g]
 		// create job
 		j := func() Message {
 			err := r.setSettings(settings, FBNEO_CFG_DIR, gameCfg, true)
@@ -86,6 +103,7 @@ func (r RetroArchChanger) GetShmupArchJobs() []Job {
 func (r RetroArchChanger) GetOverlayJobs() []Job {
 	jobs := make([]Job, 0, len(ShmupArchGameSettings))
 
+	// Only for Shmups as overlays don't really distract here
 	for g := range ShmupArchGameSettings {
 		// need to copy into new variables to use in closure (otherwise pointer to loop var is used)
 		// details see: https://github.com/golang/go/wiki/CommonMistakes
