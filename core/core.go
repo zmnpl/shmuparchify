@@ -109,22 +109,8 @@ func (r RetroArchChanger) GetOverlayJobs() []Job {
 		// details see: https://github.com/golang/go/wiki/CommonMistakes
 		game := g
 
-		job := func() Message {
-			// TODO: add overlay config here as well
-
-			err := r.DownloadOverlay(game)
-			if err != nil {
-				return Message{Success: false, Text: fmt.Sprintf("%s; Failed to download overlay: %v", game, err)}
-			}
-
-			err = r.setSettings(makeOverlayCfg(r.retroarchCfgDirPath, game), FBNEO_CFG_DIR, game+".cfg", true)
-			if err != nil {
-				return Message{Success: false, Text: fmt.Sprintf("%s; Downloaded overlay but could not apply settings accordingly: %v", game, err)}
-			}
-
-			return Message{Success: true, Text: fmt.Sprintf("%s; Overlay download successful", game)}
-		}
-		jobs = append(jobs, job)
+		// TODO: Actually, since this is now not a closure but a maker function, explicit copy above is not necessary
+		jobs = append(jobs, r.MakeOverlayJob(game))
 	}
 
 	return jobs

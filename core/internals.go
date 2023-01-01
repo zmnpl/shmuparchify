@@ -15,6 +15,22 @@ const (
 	OVERLAY_DOWNLOAD_URL = "https://raw.githubusercontent.com/libretro/arcade-overlays/master/overlays/borders-Various_Creators/%s"
 )
 
+func (r RetroArchChanger) MakeOverlayJob(game string) func() Message {
+	return func() Message {
+		err := r.DownloadOverlay(game)
+		if err != nil {
+			return Message{Success: false, Text: fmt.Sprintf("%s; Failed to download overlay: %v", game, err)}
+		}
+
+		err = r.setSettings(makeOverlayCfg(r.retroarchCfgDirPath, game), FBNEO_CFG_DIR, game+".cfg", true)
+		if err != nil {
+			return Message{Success: false, Text: fmt.Sprintf("%s; Downloaded overlay but could not apply settings accordingly: %v", game, err)}
+		}
+
+		return Message{Success: true, Text: fmt.Sprintf("%s; Overlay download successful", game)}
+	}
+}
+
 func (r RetroArchChanger) setSettings(cfgEntries []cfgEntry, subDir, fileName string, withBackup bool) error {
 	// backup
 	if withBackup {

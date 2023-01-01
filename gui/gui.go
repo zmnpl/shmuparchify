@@ -3,6 +3,7 @@ package gui
 import (
 	"fmt"
 	"net/url"
+	"strings"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -82,6 +83,8 @@ func Run() {
 		reportScroll.ScrollToBottom()
 	})
 
+	// overlays
+	customRomsOverlays := widget.NewEntry() // TODO: Make this non-anonymous and use it
 	// button to download overlays
 	overlayDLProgress := widget.NewProgressBar()
 	dlOverlaysButton := widget.NewButton("Download Overlays", func() {
@@ -89,6 +92,12 @@ func Run() {
 		r := core.NewRATransformer(pathEntry.Text, opts...)
 
 		overlayJobs := r.GetOverlayJobs()
+		// add custom jobs from input
+		customOverlayRoms := strings.Split(customRomsOverlays.Text, ",")
+		for _, game := range customOverlayRoms {
+			overlayJobs = append(overlayJobs, r.MakeOverlayJob(game))
+		}
+
 		overlayDLProgress.Min = 0
 		overlayDLProgress.Max = float64(len(overlayJobs))
 
@@ -118,8 +127,9 @@ func Run() {
 
 	// tab: Overlays Download
 	downloadOverlaysLayout := container.NewVBox(
-		widget.NewLabel("Optional: Enter your ROM Path to download overlays for them as well"),
-		widget.NewEntry(), // TODO: Make this non-anonymous and use it
+		widget.NewLabel("Hit the button to download overlays for alle the Shmups known to ShmupArch."),
+		widget.NewLabel("Optional: Enter a list of rom names ,-separated to download overlays for them"),
+		customRomsOverlays,
 		widget.NewSeparator(),
 		container.NewHBox(layout.NewSpacer(), dlOverlaysButton),
 		overlayDLProgress,
