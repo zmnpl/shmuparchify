@@ -8,6 +8,7 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
@@ -147,13 +148,15 @@ func Run() {
 		widget.NewHyperlink("Video on YouTube", videoUrl),
 	)
 
+	openFolderDialog := dialog.NewFolderOpen(func(r fyne.ListableURI, _ error) {
+		pathEntry.SetText(r.Path())
+	}, w)
 	// top section with ra config path entry
-	openFolderButton := widget.NewButtonWithIcon("", theme.FolderOpenIcon(), func() {})
+	openFolderButton := widget.NewButtonWithIcon("", theme.FolderOpenIcon(), func() {
+		openFolderDialog.Show()
+	})
 	retroArchPathLayout := container.NewVBox(
-		widget.NewToolbar(
-			widget.NewToolbarAction(theme.FileIcon(), nil),
-			widget.NewToolbarAction(theme.CancelIcon(), func() {}),
-		),
+		//widget.NewToolbar(widget.NewToolbarAction(theme.FileIcon(), nil), widget.NewToolbarAction(theme.CancelIcon(), func() {})),
 		hello,
 		container.New(layout.NewBorderLayout(nil, nil, openFolderButton, nil), openFolderButton, pathEntry),
 		container.NewHBox(testPathExists, testRACfgExists, testCanRW),
